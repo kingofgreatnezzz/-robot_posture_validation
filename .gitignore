@@ -1,0 +1,22 @@
+# --- Python private environment (never commit or zip this) ---
+.venv/
+venv/
+env/
+
+# --- Python cache files ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# --- Streamlit ---
+.streamlit/secrets.toml
+
+# --- Files created while the app runs ---
+temp_uploaded.jpg
+
+# --- Editors / Windows ---
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

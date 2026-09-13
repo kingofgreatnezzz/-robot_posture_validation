@@ -1,0 +1,4 @@
+# Packages needed by this project.
+streamlit>=1.32
+plotly>=5.18
+numpy>=1.24

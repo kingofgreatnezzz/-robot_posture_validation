@@ -86,6 +86,15 @@ h1,h2,h3,h4 { color:#0f172a; letter-spacing:-.02em; }
 [data-testid="stPlotlyChart"] { background:#fff; border:1px solid #e6eef7; border-radius:18px;
   padding:8px 8px 2px; box-shadow:0 20px 36px -32px rgba(15,23,42,.6); }
 .stButton>button { border-radius:12px; font-weight:600; }
+      /* ---------- tap-and-type value box next to each slider ---------- */
+      [data-testid="stNumberInput"] button {display:none !important;}
+      [data-testid="stNumberInput"] input {text-align:center; font-weight:800;
+          border-radius:10px; padding:4px 6px;}
+      [data-testid="stSidebar"] [data-testid="stNumberInput"] input {
+          background:#0b1220 !important; color:#f8fafc !important;
+          border:1px solid rgba(255,255,255,.28) !important;}
+      [data-testid="stSidebar"] [data-testid="stNumberInput"] input:focus {
+          border-color:#38bdf8 !important; box-shadow:0 0 0 2px rgba(56,189,248,.35);}
 </style>
 """, unsafe_allow_html=True)
 
@@ -97,6 +106,41 @@ def section(title, subtitle=""):
         f'<div class="sec-t">{title}</div><div class="sec-s">{subtitle}</div></div></div>',
         unsafe_allow_html=True,
     )
+
+
+def typed_slider(label, min_value, max_value, value, step, key, help=None, is_int=False):
+    """Slider PLUS a type-in box.
+
+    Students can either drag the slider, or tap the small box next to it and
+    type the exact number they want. Both stay in sync automatically.
+    (Presentation helper only - it performs no calculations.)
+    """
+    ss = st.session_state
+    nkey, lkey = key + "__num", key + "__last"
+    if nkey not in ss:
+        ss[nkey] = ss.get(key, value)
+    elif ss.get(key) != ss.get(nkey):
+        # the slider was changed somewhere else (e.g. a preset) -> follow it
+        ss[nkey] = ss.get(key)
+
+    def _slider_moved():
+        ss[lkey] = "slider"
+        ss[nkey] = ss[key]
+
+    def _number_typed():
+        ss[lkey] = "num"
+        ss[key] = ss[nkey]
+
+    col_slider, col_number = st.columns([2.2, 1], gap="small")
+    with col_slider:
+        st.slider(label, min_value, max_value, value, step, key=key,
+                  help=help, on_change=_slider_moved)
+    with col_number:
+        st.number_input("value", min_value=min_value, max_value=max_value,
+                        step=step, key=nkey, on_change=_number_typed,
+                        format="%d" if is_int else "%.2f",
+                        label_visibility="collapsed")
+    return ss.get(key, value)
 
 
 PLOTLY_FONT = dict(family="Inter, Segoe UI, sans-serif", size=12.5, color="#334155")
@@ -180,9 +224,10 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="side-sec">Tune the joints</div>', unsafe_allow_html=True)
-    base = st.slider("🔄 Base Angle", 0, 180, 45)
-    shoulder = st.slider("💪 Shoulder Angle", 0, 180, 90)
-    elbow = st.slider("🦾 Elbow Angle", 0, 180, 45)
+    base = typed_slider("🔄 Base Angle", 0, 180, 45, 1, key="base", is_int=True)
+    shoulder = typed_slider("💪 Shoulder Angle", 0, 180, 90, 1, key="shoulder", is_int=True)
+    elbow = typed_slider("🦾 Elbow Angle", 0, 180, 45, 1, key="elbow", is_int=True)
+    st.caption("💡 Tip: drag the slider, or tap the box and type an exact value.")
 
     st.markdown(f"""
     <div class="side-ref">
